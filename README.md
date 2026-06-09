@@ -10,7 +10,7 @@
 
 1. **Giao diện tối (Dark Mode) Cao cấp & Độc bản**: Phối màu công nghiệp năng lượng hiện đại, hiển thị sắc nét các thẻ chỉ số KPI và sơ đồ điều khiển.
 2. **Hỗ trợ Song ngữ (VI / EN)**: Chuyển đổi ngôn ngữ Việt - Anh linh hoạt tức thì toàn diện từ tiêu đề, nội dung thẻ đến biểu đồ.
-3. **Tự động Khởi tạo Tiến độ (WBS)**: Khi tạo mới một dự án, ứng dụng sẽ tự động sinh ra kế hoạch tiến độ gồm 6 giai đoạn tiêu chuẩn dầu khí (*Feasibility, FEED, Detailed Design, Procurement, Construction, Commissioning*).
+3. **Tự động Khởi tạo Tiến độ (WBS)**: Khi tạo mới một dự án, ứng dụng sẽ tự động sinh ra kế hoạch tiến độ gồm 6 giai đoạn tiêu chuẩn dành cho nhà thầu cung cấp thiết bị đo khí (*Clarification, Engineering, Manufacturing, FAT, Delivery, SAT*).
 4. **Sơ đồ Gantt Tương tác**: Cập nhật tiến độ dự án thời gian thực thông qua thanh trượt kéo thả mượt mà trên sơ đồ Gantt trực quan.
 5. **Hệ thống Quản lý Tài liệu (DMS)**: Cho phép tạo cấu trúc thư mục ảo và tải trực tiếp các tệp tin (PDF, bản vẽ DWG, Excel, Word...) từ máy tính cá nhân lên lưu trữ trực tiếp trong bộ nhớ IndexedDB của trình duyệt.
 6. **Sao lưu & Khôi phục (Backup & Restore)**: Dễ dàng xuất toàn bộ dữ liệu dự án cùng các file tài liệu đã upload thành một tệp tin JSON tải về máy tính và khôi phục lại bất kỳ lúc nào.
