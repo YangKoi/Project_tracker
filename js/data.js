@@ -36,7 +36,7 @@ export const translations = {
         kpiBudget: "Ngân sách CAPEX",
         kpiBudgetPlanned: "Kế hoạch",
         kpiBudgetSpent: "Thực chi",
-        kpiSafeHours: "Giờ làm việc an toàn",
+        kpiSafeHours: "Tổng thiết bị cung cấp",
         kpiActive: "Đang hoạt động",
 
         // Charts
@@ -120,12 +120,12 @@ export const translations = {
         formTitleEdit: "Chỉnh sửa thông tin dự án",
         
         // Giai đoạn dầu khí (Phases)
-        phase1: "Nghiên cứu khả thi (Feasibility)",
-        phase2: "Thiết kế kỹ thuật tổng thể (FEED)",
-        phase3: "Thiết kế chi tiết (Detailed Design)",
-        phase4: "Mua sắm thiết bị (Procurement)",
-        phase5: "Chế tạo & Thi công (Construction)",
-        phase6: "Chạy thử & Bàn giao (Commissioning)"
+        phase1: "Khởi động & Làm rõ kỹ thuật (Clarification)",
+        phase2: "Thiết kế & Phê duyệt tài liệu (Engineering)",
+        phase3: "Chế tạo thiết bị tại nhà máy (Manufacturing)",
+        phase4: "Kiểm thử chấp nhận tại xưởng (FAT)",
+        phase5: "Vận chuyển & Bàn giao (Delivery)",
+        phase6: "Giám sát lắp đặt & Chạy thử (SAT/Commissioning)"
     },
     en: {
         appTitle: "Petro-Track Project Management System",
@@ -158,7 +158,7 @@ export const translations = {
         kpiBudget: "CAPEX Budget",
         kpiBudgetPlanned: "Planned",
         kpiBudgetSpent: "Spent",
-        kpiSafeHours: "Safe Man-Hours",
+        kpiSafeHours: "Total Equipment",
         kpiActive: "Active",
 
         // Charts
@@ -242,22 +242,22 @@ export const translations = {
         formTitleEdit: "Edit Project Information",
 
         // Phases
-        phase1: "Feasibility Study",
-        phase2: "Front-End Engineering Design (FEED)",
-        phase3: "Detailed Design",
-        phase4: "Procurement",
-        phase5: "Fabrication & Construction",
-        phase6: "Commissioning & Handover"
+        phase1: "Kick-off & Technical Clarification",
+        phase2: "Engineering & Document Approval",
+        phase3: "Equipment Manufacturing & Fabrication",
+        phase4: "Factory Acceptance Test (FAT)",
+        phase5: "Delivery & Site Handover",
+        phase6: "Installation & Commissioning Support (SAT)"
     }
 };
 
-// Định nghĩa trọng số và tên mặc định của 6 giai đoạn tiêu chuẩn dầu khí
+// Định nghĩa trọng số và thời gian thực hiện mặc định của 6 giai đoạn cấp thiết bị đo khí
 export const standardPhases = [
-    { key: 'phase1', weight: 0.10, durationMonths: 2 },
-    { key: 'phase2', weight: 0.15, durationMonths: 4 },
-    { key: 'phase3', weight: 0.20, durationMonths: 6 },
-    { key: 'phase4', weight: 0.15, durationMonths: 6 },
-    { key: 'phase5', weight: 0.30, durationMonths: 10 },
+    { key: 'phase1', weight: 0.10, durationMonths: 1 },
+    { key: 'phase2', weight: 0.15, durationMonths: 2 },
+    { key: 'phase3', weight: 0.35, durationMonths: 4 },
+    { key: 'phase4', weight: 0.15, durationMonths: 1 },
+    { key: 'phase5', weight: 0.15, durationMonths: 2 },
     { key: 'phase6', weight: 0.10, durationMonths: 2 }
 ];
 
@@ -272,24 +272,10 @@ function addMonths(dateStr, months) {
 export function generateDefaultTasks(startDateStr) {
     let currentStart = startDateStr;
     return standardPhases.map((phase, index) => {
-        // Một số giai đoạn có thể chạy song song (ví dụ: Procurement chạy song song Detailed Design)
-        // Ta ước lượng thời gian một cách logic
-        let start = currentStart;
-        if (phase.key === 'phase4') {
-            // Mua sắm bắt đầu sau khi thiết kế chi tiết chạy được một nửa
-            const detailedDesignStart = new Date(currentStart);
-            detailedDesignStart.setMonth(detailedDesignStart.getMonth() - 2); // giả sử lùi lại chút
-            start = detailedDesignStart.toISOString().split('T')[0];
-            if (start < startDateStr) start = startDateStr;
-        }
-        
+        const start = currentStart;
         const duration = phase.durationMonths;
         const end = addMonths(start, duration);
-        
-        // Lưu tiến độ mốc tiếp theo làm điểm bắt đầu cho giai đoạn sau (trừ mua sắm)
-        if (phase.key !== 'phase4') {
-            currentStart = end;
-        }
+        currentStart = end; // Chạy tuần tự
 
         return {
             id: `task_${index + 1}`,
@@ -307,132 +293,132 @@ export const demoProjects = [
     {
         id: 'proj_block_b_omon',
         code: 'P-BBO-01',
-        nameVi: 'Dự án Đường ống dẫn khí Lô B - Ô Môn',
-        nameEn: 'Block B - O Mon Gas Pipeline Project',
+        nameVi: 'Cung cấp hệ thống đo khí Lô B - Ô Môn',
+        nameEn: 'Gas Detection System Supply - Block B - O Mon',
         client: 'Vietnam Oil & Gas Group (PVN)',
         location: 'Vịnh Thái Lan / Cần Thơ, Việt Nam',
         manager: 'Nguyễn Minh Quân',
         startDate: '2025-01-15',
         endDate: '2027-06-30',
-        description: 'Dự án xây dựng tuyến đường ống dẫn khí ngoài khơi từ Lô B về bờ biển Tây Nam Bộ cung cấp khí cho tổ hợp các nhà máy điện Ô Môn.',
+        description: 'Cung cấp thiết bị đo khí cố định (Fixed Gas Detectors) và tủ điều khiển trung tâm bảo vệ trạm tiếp bờ và hệ thống đường ống.',
         status: 'on_track',
         priority: 'high',
-        safeHours: 2450000,
+        equipmentCount: 150,
         budget: {
-            plannedCapex: 1200.0,
-            actualCapex: 720.0,
-            plannedOpex: 45.0,
-            actualOpex: 12.0
+            plannedCapex: 120.0,
+            actualCapex: 72.0,
+            plannedOpex: 4.5,
+            actualOpex: 1.2
         },
         tasks: [
-            { id: 'task_1', phaseKey: 'phase1', weight: 0.10, progress: 100, startDate: '2025-01-15', endDate: '2025-03-15' },
-            { id: 'task_2', phaseKey: 'phase2', weight: 0.15, progress: 100, startDate: '2025-03-15', endDate: '2025-07-15' },
-            { id: 'task_3', phaseKey: 'phase3', weight: 0.20, progress: 95, startDate: '2025-07-15', endDate: '2026-01-15' },
-            { id: 'task_4', phaseKey: 'phase4', weight: 0.15, progress: 80, startDate: '2025-10-15', endDate: '2026-04-15' },
-            { id: 'task_5', phaseKey: 'phase5', weight: 0.30, progress: 45, startDate: '2026-01-15', endDate: '2026-11-15' },
-            { id: 'task_6', phaseKey: 'phase6', weight: 0.10, progress: 0, startDate: '2026-11-15', endDate: '2027-01-15' }
+            { id: 'task_1', phaseKey: 'phase1', weight: 0.10, progress: 100, startDate: '2025-01-15', endDate: '2025-02-15' },
+            { id: 'task_2', phaseKey: 'phase2', weight: 0.15, progress: 100, startDate: '2025-02-15', endDate: '2025-04-15' },
+            { id: 'task_3', phaseKey: 'phase3', weight: 0.35, progress: 95, startDate: '2025-04-15', endDate: '2025-08-15' },
+            { id: 'task_4', phaseKey: 'phase4', weight: 0.15, progress: 80, startDate: '2025-08-15', endDate: '2025-09-15' },
+            { id: 'task_5', phaseKey: 'phase5', weight: 0.15, progress: 45, startDate: '2025-09-15', endDate: '2025-11-15' },
+            { id: 'task_6', phaseKey: 'phase6', weight: 0.10, progress: 0, startDate: '2025-11-15', endDate: '2026-01-15' }
         ],
         risks: [
             {
                 id: 'risk_1',
-                description: 'Trễ tiến độ bàn giao thiết bị van ngắt khẩn cấp (ESD Valves) từ nhà sản xuất châu Âu.',
+                description: 'Trễ tiến độ bàn giao thiết bị cảm biến hồng ngoại từ nhà sản xuất châu Âu.',
                 severity: 'medium',
                 status: 'mitigated',
                 mitigation: 'Đã đàm phán với nhà cung cấp dự phòng tại Hàn Quốc và cử kỹ sư kiểm định chất lượng túc trực tại xưởng sản xuất.'
             },
             {
                 id: 'risk_2',
-                description: 'Điều kiện thời tiết xấu (bão nhiệt đới) cản trở công tác rải ống ngoài khơi vào mùa mưa.',
+                description: 'Khách hàng thay đổi yêu cầu kỹ thuật về chứng chỉ phòng nổ (ATEX/IECEx).',
                 severity: 'high',
                 status: 'open',
-                mitigation: 'Thiết lập phương án dự phòng thời tiết, tăng cường ca kíp thi công tối đa trong các cửa sổ thời tiết thuận lợi.'
+                mitigation: 'Tổ chức cuộc họp khẩn cấp để làm rõ tiêu chuẩn và chuẩn bị hồ sơ đệ trình bổ sung.'
             }
         ],
         logbook: [
-            { id: 'log_1', date: '2026-06-01', content: 'Hoàn thành lắp đặt 45km đường ống nhánh biển thứ nhất. Đã kiểm tra siêu âm mối hàn đạt 99.8% chất lượng.', author: 'Trần Văn Dũng' },
-            { id: 'log_2', date: '2026-06-08', content: 'Vận chuyển trạm tiếp bờ (LFS) đến vị trí lắp đặt an toàn. Bắt đầu căn chỉnh móng cọc.', author: 'Lê Hoàng Nam' }
+            { id: 'log_1', date: '2026-06-01', content: 'Hoàn thành lắp ráp thử nghiệm tủ điều khiển đo khí đầu tiên tại xưởng.', author: 'Trần Văn Dũng' },
+            { id: 'log_2', date: '2026-06-08', content: 'Gửi tài liệu thiết kế chi tiết (Wiring Diagram) đợt 2 cho khách hàng phê duyệt.', author: 'Lê Hoàng Nam' }
         ]
     },
     {
         id: 'proj_su_tu_trang',
         code: 'P-STT-2B',
-        nameVi: 'Phát triển mỏ Sư Tử Trắng - Giai đoạn 2B',
-        nameEn: 'Su Tu Trang Full Field Development - Phase 2B',
+        nameVi: 'Cung cấp thiết bị đo khí Sư Tử Trắng - Gđ 2B',
+        nameEn: 'Gas Detection Package - Su Tu Trang - Phase 2B',
         client: 'Cuu Long Joint Operating Company (CLJOC)',
         location: 'Lô 15-1, Bể Cửu Long, Việt Nam',
         manager: 'David Harrison',
         startDate: '2025-09-01',
         endDate: '2027-12-31',
-        description: 'Dự án khoan thêm các giếng khai thác ngưng tụ (condensate) và khí ẩm, lắp đặt giàn đầu giếng mới kết nối về giàn trung tâm hiện hữu.',
+        description: 'Cung cấp thiết bị đo khí độc H2S và đo khí cháy nổ hydrocarbon lắp đặt trên giàn đầu giếng mới WHP.',
         status: 'on_track',
         priority: 'high',
-        safeHours: 850000,
+        equipmentCount: 85,
         budget: {
-            plannedCapex: 480.0,
-            actualCapex: 120.0,
-            plannedOpex: 18.0,
-            actualOpex: 2.5
+            plannedCapex: 48.0,
+            actualCapex: 12.0,
+            plannedOpex: 1.8,
+            actualOpex: 0.2
         },
         tasks: [
-            { id: 'task_1', phaseKey: 'phase1', weight: 0.10, progress: 100, startDate: '2025-09-01', endDate: '2025-11-01' },
-            { id: 'task_2', phaseKey: 'phase2', weight: 0.15, progress: 85, startDate: '2025-11-01', endDate: '2026-03-01' },
-            { id: 'task_3', phaseKey: 'phase3', weight: 0.20, progress: 30, startDate: '2026-03-01', endDate: '2026-09-01' },
-            { id: 'task_4', phaseKey: 'phase4', weight: 0.15, progress: 15, startDate: '2026-05-01', endDate: '2026-11-01' },
-            { id: 'task_5', phaseKey: 'phase5', weight: 0.30, progress: 0, startDate: '2026-09-01', endDate: '2027-07-01' },
-            { id: 'task_6', phaseKey: 'phase6', weight: 0.10, progress: 0, startDate: '2027-07-01', endDate: '2027-09-01' }
+            { id: 'task_1', phaseKey: 'phase1', weight: 0.10, progress: 100, startDate: '2025-09-01', endDate: '2025-10-01' },
+            { id: 'task_2', phaseKey: 'phase2', weight: 0.15, progress: 85, startDate: '2025-10-01', endDate: '2025-12-01' },
+            { id: 'task_3', phaseKey: 'phase3', weight: 0.35, progress: 30, startDate: '2025-12-01', endDate: '2026-04-01' },
+            { id: 'task_4', phaseKey: 'phase4', weight: 0.15, progress: 0, startDate: '2026-04-01', endDate: '2026-05-01' },
+            { id: 'task_5', phaseKey: 'phase5', weight: 0.15, progress: 0, startDate: '2026-05-01', endDate: '2026-07-01' },
+            { id: 'task_6', phaseKey: 'phase6', weight: 0.10, progress: 0, startDate: '2026-07-01', endDate: '2026-09-01' }
         ],
         risks: [
             {
                 id: 'risk_1',
-                description: 'Độ lún của giàn đầu giếng vượt mức tính toán ban đầu do địa chất địa tầng phức tạp.',
+                description: 'Độ trễ phản hồi của cảm biến khí độc H2S ở điều kiện độ ẩm cao ngoài khơi.',
                 severity: 'medium',
                 status: 'open',
-                mitigation: 'Thuê nhà thầu tư vấn quốc tế chạy mô phỏng địa kỹ thuật nâng cao và tối ưu hóa hệ thống gia cố cọc móng.'
+                mitigation: 'Lựa chọn cảm biến có tích hợp màng lọc hydrophobic nâng cao và bộ sấy chống ngưng tụ.'
             }
         ],
         logbook: [
-            { id: 'log_1', date: '2026-05-15', content: 'Chốt thông số bản thiết kế 3D Model giàn đầu giếng (WHP). Chuẩn bị họp phê duyệt Hazop.', author: 'Nguyễn Thị Hải' }
+            { id: 'log_1', date: '2026-05-15', content: 'Nhận bản vẽ bố trí cảm biến đo khí từ đơn vị thiết kế để tính toán vùng phủ (Detector Mapping).', author: 'Nguyễn Thị Hải' }
         ]
     },
     {
         id: 'proj_lac_da_vang',
         code: 'P-LDV-03',
-        nameVi: 'Dự án Phát triển mỏ Lạc Đà Vàng',
-        nameEn: 'Lac Da Vang Field Development Project',
+        nameVi: 'Cung cấp đầu đo khí cháy mỏ Lạc Đà Vàng',
+        nameEn: 'Combustible Gas Detectors - Lac Da Vang',
         client: 'Murphy Oil Corporation',
         location: 'Lô 15-1/05, Bể Cửu Long, Việt Nam',
         manager: 'Phạm Hồng Thái',
         startDate: '2026-03-01',
         endDate: '2028-10-31',
-        description: 'Dự án phát triển mỏ dầu cận biên Lạc Đà Vàng thông qua hệ thống giàn khai thác WHP kết nối với tàu chứa và xử lý dầu thô (FPSO).',
+        description: 'Cung cấp hệ thống đầu đo phát hiện rò rỉ khí gas dạng điểm (Point Gas Detectors) lắp đặt quanh khu vực đầu giếng WHP.',
         status: 'delayed',
         priority: 'medium',
-        safeHours: 120000,
+        equipmentCount: 40,
         budget: {
-            plannedCapex: 690.0,
-            actualCapex: 45.0,
-            plannedOpex: 22.0,
-            actualOpex: 0.8
+            plannedCapex: 69.0,
+            actualCapex: 4.5,
+            plannedOpex: 2.2,
+            actualOpex: 0.1
         },
         tasks: [
-            { id: 'task_1', phaseKey: 'phase1', weight: 0.10, progress: 100, startDate: '2026-03-01', endDate: '2026-05-01' },
-            { id: 'task_2', phaseKey: 'phase2', weight: 0.15, progress: 40, startDate: '2026-05-01', endDate: '2026-09-01' },
-            { id: 'task_3', phaseKey: 'phase3', weight: 0.20, progress: 0, startDate: '2026-09-01', endDate: '2027-03-01' },
-            { id: 'task_4', phaseKey: 'phase4', weight: 0.15, progress: 0, startDate: '2026-11-01', endDate: '2027-05-01' },
-            { id: 'task_5', phaseKey: 'phase5', weight: 0.30, progress: 0, startDate: '2027-03-01', endDate: '2028-01-01' },
-            { id: 'task_6', phaseKey: 'phase6', weight: 0.10, progress: 0, startDate: '2028-01-01', endDate: '2028-03-01' }
+            { id: 'task_1', phaseKey: 'phase1', weight: 0.10, progress: 100, startDate: '2026-03-01', endDate: '2026-04-01' },
+            { id: 'task_2', phaseKey: 'phase2', weight: 0.15, progress: 40, startDate: '2026-04-01', endDate: '2026-06-01' },
+            { id: 'task_3', phaseKey: 'phase3', weight: 0.35, progress: 0, startDate: '2026-06-01', endDate: '2026-10-01' },
+            { id: 'task_4', phaseKey: 'phase4', weight: 0.15, progress: 0, startDate: '2026-10-01', endDate: '2026-11-01' },
+            { id: 'task_5', phaseKey: 'phase5', weight: 0.15, progress: 0, startDate: '2026-11-01', endDate: '2027-01-01' },
+            { id: 'task_6', phaseKey: 'phase6', weight: 0.10, progress: 0, startDate: '2027-01-01', endDate: '2027-03-01' }
         ],
         risks: [
             {
                 id: 'risk_1',
-                description: 'Trễ hạn phê duyệt Kế hoạch phát triển mỏ (FDP) từ cơ quan quản lý nhà nước.',
+                description: 'Tài liệu hướng dẫn kỹ thuật lắp đặt chưa được chủ đầu tư Murphy phê duyệt.',
                 severity: 'high',
                 status: 'open',
-                mitigation: 'Tăng cường phối hợp và giải trình chi tiết kỹ thuật trực tiếp cho Bộ Công Thương và Tập đoàn PVN để đẩy nhanh phê duyệt.'
+                mitigation: 'Cử nhóm kỹ sư kỹ thuật trực tiếp họp giải trình trực tiếp tại văn phòng Murphy Oil.'
             }
         ],
         logbook: [
-            { id: 'log_1', date: '2026-04-10', content: 'Hoàn thành khảo sát địa hình đáy biển khu vực neo đậu FPSO.', author: 'Trần Văn Chiến' }
+            { id: 'log_1', date: '2026-04-10', content: 'Chốt danh sách vật tư linh kiện (Bill of Materials) để chuẩn bị đặt hàng linh kiện cảm biến.', author: 'Trần Văn Chiến' }
         ]
     }
 ];

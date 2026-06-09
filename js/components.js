@@ -88,8 +88,8 @@ export function renderProjectCard(p, lang) {
             
             <div class="project-card-footer">
                 <div class="safe-hours-indicator">
-                    <i class="ph-bold ph-shield-check"></i>
-                    <span>${formatNumber(p.safeHours || 0)} ${t.kpiSafeHours.toLowerCase()}</span>
+                    <i class="ph-bold ph-gauge"></i>
+                    <span>${formatNumber(p.equipmentCount || 0)} ${t.kpiSafeHours.toLowerCase()}</span>
                 </div>
                 <button class="btn btn-secondary btn-icon btn-open-project" data-id="${p.id}" title="${lang === 'vi' ? 'Xem chi tiết' : 'Open details'}">
                     <i class="ph-bold ph-arrow-square-out"></i>

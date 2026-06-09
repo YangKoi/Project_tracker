@@ -140,19 +140,19 @@ function updateKPIs() {
     let sumProgress = 0;
     let totalPlannedCapex = 0;
     let totalActualCapex = 0;
-    let totalSafeHours = 0;
+    let totalEquipmentCount = 0;
 
     allProjectsList.forEach(p => {
         sumProgress += calculateOverallProgress(p.tasks);
         totalPlannedCapex += p.budget?.plannedCapex || 0;
         totalActualCapex += p.budget?.actualCapex || 0;
-        totalSafeHours += p.safeHours || 0;
+        totalEquipmentCount += p.equipmentCount || 0;
     });
 
     const avgProgress = Math.round(sumProgress / total);
     document.getElementById('kpiAvgProgress').innerText = `${avgProgress}%`;
     document.getElementById('kpiBudgetText').innerText = `${totalActualCapex.toFixed(1)} / ${totalPlannedCapex.toFixed(1)} M$`;
-    document.getElementById('kpiSafeHoursVal').innerText = formatNumber(totalSafeHours);
+    document.getElementById('kpiSafeHoursVal').innerText = formatNumber(totalEquipmentCount);
 }
 
 /**
@@ -722,7 +722,7 @@ function openProjectFormModal(editProj) {
         document.getElementById('formClient').value = editProj.client;
         document.getElementById('formManager').value = editProj.manager;
         document.getElementById('formLocation').value = editProj.location;
-        document.getElementById('formSafeHours').value = editProj.safeHours || 0;
+        document.getElementById('formSafeHours').value = editProj.equipmentCount || 0;
         document.getElementById('formStartDate').value = editProj.startDate;
         document.getElementById('formEndDate').value = editProj.endDate;
         document.getElementById('formDescription').value = editProj.description || '';
@@ -771,7 +771,7 @@ async function handleProjectFormSubmit(e) {
             description,
             status: 'on_track', // mặc định khi tạo mới
             priority,
-            safeHours,
+            equipmentCount: safeHours,
             budget: {
                 plannedCapex: 100.0, // các thông số tài chính mặc định ban đầu
                 actualCapex: 0,
@@ -796,7 +796,7 @@ async function handleProjectFormSubmit(e) {
             projectToUpdate.client = client;
             projectToUpdate.manager = manager;
             projectToUpdate.location = location;
-            projectToUpdate.safeHours = safeHours;
+            projectToUpdate.equipmentCount = safeHours;
             projectToUpdate.startDate = startDate;
             projectToUpdate.endDate = endDate;
             projectToUpdate.description = description;
