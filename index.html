@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petro-Track | Hệ thống Quản lý Dự án Dầu khí</title>
+    <meta name="description" content="Hệ thống quản lý và theo dõi tiến độ dự án dầu khí thông minh với sơ đồ Gantt chi tiết, quản lý hồ sơ tài liệu trực tiếp trên trình duyệt.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Phosphor Icons (Modern icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo-area">
+                <i class="ph-bold ph-sketch-logo logo-icon"></i>
+                <span class="logo-text" id="logoText">Petro-Track</span>
+            </div>
+            <div class="header-actions">
+                <!-- Nút chuyển đổi ngôn ngữ -->
+                <div style="display: flex; gap: 0.25rem;">
+                    <button class="lang-btn active" id="langViBtn">VI</button>
+                    <button class="lang-btn" id="langEnBtn">EN</button>
+                </div>
+                
+                <!-- Action Buttons -->
+                <button class="btn btn-secondary" id="btnResetDemo" title="Nạp dữ liệu dự án mẫu">
+                    <i class="ph ph-arrow-counter-clockwise"></i> <span data-i18n="resetDemo">Dữ liệu mẫu</span>
+                </button>
+                <button class="btn btn-secondary" id="btnExport" title="Sao lưu cơ sở dữ liệu ra máy tính">
+                    <i class="ph ph-export"></i> <span data-i18n="exportData">Xuất Backup</span>
+                </button>
+                <button class="btn btn-secondary" id="btnImport" title="Khôi phục cơ sở dữ liệu từ file backup">
+                    <i class="ph ph-import"></i> <span data-i18n="importData">Nhập Backup</span>
+                </button>
+                <button class="btn btn-primary" id="btnAddNew" title="Tạo dự án mới">
+                    <i class="ph ph-plus-circle"></i> <span data-i18n="addProject">Thêm dự án</span>
+                </button>
+                
+                <!-- Input file ẩn phục vụ Restore database -->
+                <input type="file" id="importFileInput" accept=".json" class="file-upload-input">
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- KPI Dashboard Section -->
+        <section class="kpi-grid">
+            <!-- Card 1: Tổng dự án -->
+            <div class="kpi-card">
+                <div class="kpi-info">
+                    <h3 data-i18n="kpiTotal">Tổng số dự án</h3>
+                    <div class="kpi-value" id="kpiTotalProjects">0</div>
+                </div>
+                <i class="ph ph-folders kpi-icon"></i>
+            </div>
+            <!-- Card 2: Tiến độ trung bình -->
+            <div class="kpi-card">
+                <div class="kpi-info">
+                    <h3 data-i18n="kpiProgress">Tiến độ trung bình</h3>
+                    <div class="kpi-value" id="kpiAvgProgress">0%</div>
+                </div>
+                <i class="ph ph-chart-line-up kpi-icon"></i>
+            </div>
+            <!-- Card 3: CAPEX Spent / Planned -->
+            <div class="kpi-card">
+                <div class="kpi-info">
+                    <h3 data-i18n="kpiBudget">Ngân sách CAPEX</h3>
+                    <div class="kpi-value" style="font-size: 1.15rem;" id="kpiBudgetText">0 / 0 M$</div>
+                </div>
+                <i class="ph ph-currency-dollar kpi-icon"></i>
+            </div>
+            <!-- Card 4: Safe Man-hours -->
+            <div class="kpi-card">
+                <div class="kpi-info">
+                    <h3 data-i18n="kpiSafeHours">Giờ làm an toàn</h3>
+                    <div class="kpi-value" id="kpiSafeHoursVal">0</div>
+                </div>
+                <i class="ph ph-shield-check kpi-icon"></i>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-grid">
+            <!-- Biểu đồ Ngân sách -->
+            <div class="chart-card">
+                <h2 data-i18n="chartBudgetTitle">Kế hoạch ngân sách vs Thực chi</h2>
+                <div class="chart-wrapper">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+            <!-- Biểu đồ Trạng thái/Tiến độ -->
+            <div class="chart-card">
+                <h2 data-i18n="chartRiskTitle">Phân bổ rủi ro</h2>
+                <div class="chart-wrapper">
+                    <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search & Control Bar -->
+        <section class="control-bar">
+            <div class="search-filter-area">
+                <div class="search-input-wrapper">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm dự án (tên, mã)..." data-i18n-placeholder="searchPlaceholder">
+                </div>
+                
+                <select id="statusFilter" class="filter-select">
+                    <option value="all" data-i18n="statusAll">Tất cả trạng thái</option>
+                    <option value="on_track" data-i18n="on_track">Đúng tiến độ</option>
+                    <option value="delayed" data-i18n="delayed">Trễ tiến độ</option>
+                    <option value="critical" data-i18n="critical">Trạng thái nghiêm trọng</option>
+                    <option value="completed" data-i18n="completed">Đã hoàn thành</option>
+                </select>
+
+                <select id="priorityFilter" class="filter-select">
+                    <option value="all" data-i18n="priorityAll">Tất cả độ ưu tiên</option>
+                    <option value="high" data-i18n="high">Độ ưu tiên: Cao</option>
+                    <option value="medium" data-i18n="medium">Độ ưu tiên: Trung bình</option>
+                    <option value="low" data-i18n="low">Độ ưu tiên: Thấp</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Projects Grid Container -->
+        <section class="projects-container" id="projectsGrid">
+            <!-- Render động bằng Javascript -->
+        </section>
+    </main>
+
+    <!-- Modal Chi tiết Dự án -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal-container">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <div class="modal-title-area">
+                    <h2 id="modalProjectName">Tên Dự án Dầu khí</h2>
+                    <div class="modal-subtitle">
+                        <span><strong data-i18n="projCode">Mã dự án</strong>: <span id="modalProjectCode">P-01</span></span>
+                        <span><strong data-i18n="client">Khách hàng</strong>: <span id="modalProjectClient">Client</span></span>
+                    </div>
+                </div>
+                <button class="modal-close" id="modalCloseBtn">&times;</button>
+            </div>
+            
+            <!-- Modal Tabs Navigation -->
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-tab="tabGeneral" data-i18n="tabGeneral">Thông tin chung</button>
+                <button class="tab-btn" data-tab="tabSchedule" data-i18n="tabSchedule">Tiến độ & Gantt</button>
+                <button class="tab-btn" data-tab="tabDms" data-i18n="tabDms">Tài liệu & Thư mục</button>
+                <button class="tab-btn" data-tab="tabRisks" data-i18n="tabRisks">Quản lý rủi ro</button>
+                <button class="tab-btn" data-tab="tabFinancials" data-i18n="tabFinancials">Tài chính</button>
+                <button class="tab-btn" data-tab="tabLogbook" data-i18n="tabLogbook">Nhật ký</button>
+            </div>
+
+            <!-- Modal Body Content -->
+            <div class="modal-body">
+                <!-- Tab: Thông tin chung -->
+                <div class="tab-content active" id="tabGeneral">
+                    <div class="general-grid">
+                        <div class="details-box">
+                            <h3 data-i18n="description">Mô tả dự án</h3>
+                            <p id="modalProjectDesc" style="color: var(--text-secondary); margin-bottom: 1.5rem;"></p>
+                            
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <span class="info-label" data-i18n="location">Địa điểm</span>
+                                    <span class="info-value" id="modalProjectLoc">Vũng Tàu</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label" data-i18n="manager">Quản lý dự án</span>
+                                    <span class="info-value" id="modalProjectPM">PM Name</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label" data-i18n="startDate">Ngày bắt đầu</span>
+                                    <span class="info-value" id="modalProjectStart">YYYY-MM-DD</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label" data-i18n="endDate">Ngày kết thúc</span>
+                                    <span class="info-value" id="modalProjectEnd">YYYY-MM-DD</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="details-box" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                            <h3 data-i18n="progress">Tiến độ</h3>
+                            <div style="font-size: 3rem; font-weight: 700; color: var(--teal); font-family: var(--font-heading);" id="modalProjectProgressPercent">0%</div>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                <span class="badge" id="modalProjectStatusBadge">On Track</span>
+                                <span class="badge" id="modalProjectPriorityBadge">High</span>
+                            </div>
+                            <button class="btn btn-secondary" id="btnEditProject" style="margin-top: 2rem; width: 100%;">
+                                <i class="ph ph-pencil"></i> <span data-i18n="editProject">Chỉnh sửa dự án</span>
+                            </button>
+                            <button class="btn btn-danger" id="btnDeleteProject" style="margin-top: 0.5rem; width: 100%;">
+                                <i class="ph ph-trash"></i> <span data-i18n="delete">Xóa dự án</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Tiến độ & Gantt -->
+                <div class="tab-content" id="tabSchedule">
+                    <h3 data-i18n="ganttTitle" style="margin-bottom: 0.5rem;">Kế hoạch tiến độ chi tiết (WBS)</h3>
+                    <p data-i18n="autoGenNote" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Bảng tiến độ này được tạo tự động.</p>
+                    
+                    <div class="gantt-container">
+                        <table class="gantt-chart-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="ganttPhase">Giai đoạn</th>
+                                    <th style="width: 80px;" data-i18n="ganttWeight">Trọng số</th>
+                                    <th style="width: 200px;" data-i18n="ganttDates">Thời gian thực hiện</th>
+                                    <th style="width: 80px;" data-i18n="progress">Tiến độ</th>
+                                    <th data-i18n="editSchedule">Cập nhật tiến độ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ganttTasksTableBody">
+                                <!-- Render động -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Tài liệu & Thư mục (DMS) -->
+                <div class="tab-content" id="tabDms">
+                    <div class="dms-header-bar">
+                        <div class="dms-path" id="dmsPathBreadcrumbs">
+                            <span class="dms-path-node">Root</span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <!-- Input upload file ẩn -->
+                            <input type="file" id="dmsFileUploadInput" class="file-upload-input">
+                            <button class="btn btn-secondary btn-icon" id="btnDmsBack" title="Quay lại">
+                                <i class="ph ph-arrow-left"></i>
+                            </button>
+                            <button class="btn btn-secondary" id="btnDmsNewFolder">
+                                <i class="ph ph-folder-plus"></i> <span data-i18n="newFolder">Tạo thư mục</span>
+                            </button>
+                            <button class="btn btn-primary" id="btnDmsUpload">
+                                <i class="ph ph-upload-simple"></i> <span data-i18n="uploadFile">Tải tệp tin</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- File Explorer Grid -->
+                    <div class="dms-grid" id="dmsFileGrid">
+                        <!-- Render động các folder và file -->
+                    </div>
+                </div>
+
+                <!-- Tab: Quản trị Rủi ro -->
+                <div class="tab-content" id="tabRisks">
+                    <div class="risk-table-container">
+                        <table class="risk-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="riskDesc">Mô tả rủi ro</th>
+                                    <th style="width: 120px;" data-i18n="riskSeverity">Mức độ</th>
+                                    <th style="width: 120px;" data-i18n="riskStatus">Trạng thái</th>
+                                    <th data-i18n="riskMitigation">Biện pháp giảm thiểu</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="riskTableBody">
+                                <!-- Render động -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Form thêm rủi ro mới -->
+                    <form class="risk-form" id="riskAddForm" onsubmit="return false;">
+                        <div class="form-group">
+                            <label data-i18n="riskDesc">Mô tả rủi ro</label>
+                            <input type="text" id="newRiskDesc" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="riskSeverity">Mức độ</label>
+                            <select id="newRiskSeverity">
+                                <option value="high" data-i18n="high">Cao</option>
+                                <option value="medium" data-i18n="medium">Trung bình</option>
+                                <option value="low" data-i18n="low">Thấp</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="riskStatus">Trạng thái</label>
+                            <select id="newRiskStatus">
+                                <option value="open" data-i18n="riskOpen">Mở</option>
+                                <option value="mitigated" data-i18n="riskMitigated">Đã giảm thiểu</option>
+                                <option value="closed" data-i18n="riskClosed">Đóng</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="riskMitigation">Biện pháp giảm thiểu</label>
+                            <input type="text" id="newRiskMitigation">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btnRiskAdd">
+                            <i class="ph ph-plus"></i> <span data-i18n="save">Thêm</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tab: Tài chính -->
+                <div class="tab-content" id="tabFinancials">
+                    <div class="financials-grid">
+                        <div class="fin-card">
+                            <div class="fin-title" data-i18n="finPlannedCapex">Kế hoạch CAPEX (Triệu USD)</div>
+                            <div class="fin-value" id="finPlannedCapexVal">0 M$</div>
+                        </div>
+                        <div class="fin-card">
+                            <div class="fin-title" data-i18n="finActualCapex">Thực tế CAPEX (Triệu USD)</div>
+                            <div class="fin-value" id="finActualCapexVal" style="color: var(--teal);">0 M$</div>
+                        </div>
+                        <div class="fin-card">
+                            <div class="fin-title" data-i18n="finPlannedOpex">Kế hoạch OPEX (Triệu USD)</div>
+                            <div class="fin-value" id="finPlannedOpexVal">0 M$</div>
+                        </div>
+                        <div class="fin-card">
+                            <div class="fin-title" data-i18n="finActualOpex">Thực tế OPEX (Triệu USD)</div>
+                            <div class="fin-value" id="finActualOpexVal" style="color: var(--teal);">0 M$</div>
+                        </div>
+                    </div>
+                    
+                    <h3 data-i18n="editProject" style="font-size: 1rem; margin-bottom: 1rem;">Cập nhật tài chính dự án</h3>
+                    <form class="fin-edit-grid" id="finEditForm" onsubmit="return false;">
+                        <div class="form-group">
+                            <label data-i18n="finPlannedCapex">Kế hoạch CAPEX</label>
+                            <input type="number" step="0.1" id="inputPlannedCapex" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="finActualCapex">Thực tế CAPEX</label>
+                            <input type="number" step="0.1" id="inputActualCapex" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="finPlannedOpex">Kế hoạch OPEX</label>
+                            <input type="number" step="0.1" id="inputPlannedOpex" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="finActualOpex">Thực tế OPEX</label>
+                            <input type="number" step="0.1" id="inputActualOpex" required>
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button type="submit" class="btn btn-primary" id="btnSaveFinancials" style="width: 100%;">
+                                <i class="ph ph-floppy-disk"></i> <span data-i18n="save">Cập nhật</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab: Nhật ký -->
+                <div class="tab-content" id="tabLogbook">
+                    <div class="log-timeline" id="logTimelineContainer">
+                        <!-- Render động -->
+                    </div>
+                    
+                    <!-- Form thêm nhật ký mới -->
+                    <form class="log-form" id="logAddForm" onsubmit="return false;">
+                        <div class="form-group" style="flex-grow: 1;">
+                            <label data-i18n="logContent">Cập nhật nổi bật trong tuần</label>
+                            <input type="text" id="newLogContent" required placeholder="..." style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="width: 150px;">
+                            <label data-i18n="logAuthor">Người báo cáo</label>
+                            <input type="text" id="newLogAuthor" required placeholder="PM / Engineer">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btnLogAdd">
+                            <i class="ph ph-plus"></i> <span data-i18n="save">Ghi nhận</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Tạo/Sửa Dự án -->
+    <div class="modal-overlay" id="formModal">
+        <div class="modal-container dialog-container">
+            <div class="modal-header">
+                <h2 id="formModalTitle" data-i18n="formTitleAdd">Thêm dự án mới</h2>
+                <button class="modal-close" id="formModalCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="projectMainForm" onsubmit="return false;">
+                    <!-- Mã & Tên dự án -->
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label><span data-i18n="projCode">Mã dự án</span> *</label>
+                            <input type="text" id="formCode" required placeholder="P-XXXX">
+                        </div>
+                        <div class="form-group">
+                            <label><span data-i18n="priority">Độ ưu tiên</span></label>
+                            <select id="formPriority">
+                                <option value="high" data-i18n="high">Cao</option>
+                                <option value="medium" data-i18n="medium" selected>Trung bình</option>
+                                <option value="low" data-i18n="low">Thấp</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Tên dự án (Tiếng Việt) *</label>
+                        <input type="text" id="formNameVi" required placeholder="Tên dự án bằng tiếng Việt">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Project Name (English) *</label>
+                        <input type="text" id="formNameEn" required placeholder="Project name in English">
+                    </div>
+
+                    <!-- Khách hàng & Quản lý -->
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label><span data-i18n="client">Khách hàng</span> *</label>
+                            <input type="text" id="formClient" required placeholder="Tên chủ đầu tư/khách hàng">
+                        </div>
+                        <div class="form-group">
+                            <label><span data-i18n="manager">Quản lý dự án</span> *</label>
+                            <input type="text" id="formManager" required placeholder="Tên PM điều hành">
+                        </div>
+                    </div>
+
+                    <!-- Địa điểm & Giờ an toàn -->
+                    <div class="form-grid-2" style="margin-top: 1rem;">
+                        <div class="form-group">
+                            <label><span data-i18n="location">Địa điểm</span> *</label>
+                            <input type="text" id="formLocation" required placeholder="Onshore / Offshore / Tỉnh thành">
+                        </div>
+                        <div class="form-group">
+                            <label><span data-i18n="kpiSafeHours">Giờ làm an toàn tích lũy</span></label>
+                            <input type="number" id="formSafeHours" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Ngày tháng -->
+                    <div class="form-grid-2" style="margin-top: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label><span data-i18n="startDate">Ngày bắt đầu</span> *</label>
+                            <input type="date" id="formStartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label><span data-i18n="endDate">Ngày kết thúc</span> *</label>
+                            <input type="date" id="formEndDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label data-i18n="description">Mô tả tóm tắt</label>
+                        <textarea id="formDescription" rows="3" placeholder="Mô tả tóm tắt về dự án..."></textarea>
+                    </div>
+
+                    <!-- Nút bấm điều hướng -->
+                    <div class="form-buttons">
+                        <button type="button" class="btn btn-secondary" id="btnFormCancel" data-i18n="cancel">Hủy bỏ</button>
+                        <button type="submit" class="btn btn-primary" id="btnFormSubmit" data-i18n="save">Lưu lại</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Orchestrator script -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
