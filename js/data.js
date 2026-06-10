@@ -40,8 +40,8 @@ export const translations = {
         kpiActive: "Đang hoạt động",
 
         // Charts
-        chartProgressTitle: "Tiến độ dự án theo giai đoạn",
-        chartBudgetTitle: "Ngân sách dự chi vs Thực tế (Triệu USD)",
+        chartProgressTitle: "Phân bổ trạng thái dự án",
+        chartBudgetTitle: "Ngân sách dự chi vs Thực tế",
         chartRiskTitle: "Phân bổ mức độ rủi ro",
 
         // Table / Headers
@@ -162,8 +162,8 @@ export const translations = {
         kpiActive: "Active",
 
         // Charts
-        chartProgressTitle: "Project Progress by Phase",
-        chartBudgetTitle: "Planned Budget vs Actual (Million USD)",
+        chartProgressTitle: "Project Status Distribution",
+        chartBudgetTitle: "Planned Budget vs Actual",
         chartRiskTitle: "Risk Distribution Matrix",
 
         // Table / Headers
@@ -304,12 +304,6 @@ export const demoProjects = [
         status: 'on_track',
         priority: 'high',
         equipmentCount: 150,
-        budget: {
-            plannedCapex: 120.0,
-            actualCapex: 72.0,
-            plannedOpex: 4.5,
-            actualOpex: 1.2
-        },
         tasks: [
             { id: 'task_1', phaseKey: 'phase1', weight: 0.10, progress: 100, startDate: '2025-01-15', endDate: '2025-02-15' },
             { id: 'task_2', phaseKey: 'phase2', weight: 0.15, progress: 100, startDate: '2025-02-15', endDate: '2025-04-15' },
@@ -353,12 +347,6 @@ export const demoProjects = [
         status: 'on_track',
         priority: 'high',
         equipmentCount: 85,
-        budget: {
-            plannedCapex: 48.0,
-            actualCapex: 12.0,
-            plannedOpex: 1.8,
-            actualOpex: 0.2
-        },
         tasks: [
             { id: 'task_1', phaseKey: 'phase1', weight: 0.10, progress: 100, startDate: '2025-09-01', endDate: '2025-10-01' },
             { id: 'task_2', phaseKey: 'phase2', weight: 0.15, progress: 85, startDate: '2025-10-01', endDate: '2025-12-01' },
@@ -394,12 +382,6 @@ export const demoProjects = [
         status: 'delayed',
         priority: 'medium',
         equipmentCount: 40,
-        budget: {
-            plannedCapex: 69.0,
-            actualCapex: 4.5,
-            plannedOpex: 2.2,
-            actualOpex: 0.1
-        },
         tasks: [
             { id: 'task_1', phaseKey: 'phase1', weight: 0.10, progress: 100, startDate: '2026-03-01', endDate: '2026-04-01' },
             { id: 'task_2', phaseKey: 'phase2', weight: 0.15, progress: 40, startDate: '2026-04-01', endDate: '2026-06-01' },

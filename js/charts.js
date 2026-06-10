@@ -5,7 +5,7 @@
 
 import { translations } from './data.js';
 
-let budgetChartInstance = null;
+let statusChartInstance = null;
 let riskChartInstance = null;
 
 // Tùy chỉnh cấu hình mặc định cho Chart.js phù hợp với Dark Mode
@@ -25,56 +25,57 @@ export function updateCharts(projects, lang) {
 
     const t = translations[lang];
 
-    // --- 1. BIỂU ĐỒ NGÂN SÁCH (Planned vs Actual CAPEX) ---
-    const budgetCtx = document.getElementById('budgetChart');
-    if (budgetCtx) {
-        // Chuẩn bị dữ liệu vẽ biểu đồ
-        // Lấy danh sách tên dự án và CAPEX tương ứng
-        const labels = projects.map(p => {
-            const name = lang === 'vi' ? p.nameVi : p.nameEn;
-            return name.length > 20 ? name.substring(0, 17) + '...' : name;
-        });
-        
-        const plannedCapexData = projects.map(p => p.budget?.plannedCapex || 0);
-        const actualCapexData = projects.map(p => p.budget?.actualCapex || 0);
+    // --- 1. BIỂU ĐỒ TRẠNG THÁI DỰ ÁN (Project Status Distribution - Doughnut Chart) ---
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        let onTrackCount = 0;
+        let delayedCount = 0;
+        let criticalCount = 0;
+        let completedCount = 0;
 
-        if (budgetChartInstance) {
-            budgetChartInstance.data.labels = labels;
-            budgetChartInstance.data.datasets[0].label = lang === 'vi' ? 'CAPEX Kế hoạch' : 'Planned CAPEX';
-            budgetChartInstance.data.datasets[0].data = plannedCapexData;
-            budgetChartInstance.data.datasets[1].label = lang === 'vi' ? 'CAPEX Thực chi' : 'Actual CAPEX';
-            budgetChartInstance.data.datasets[1].data = actualCapexData;
-            budgetChartInstance.update();
+        projects.forEach(p => {
+            if (p.status === 'on_track') onTrackCount++;
+            else if (p.status === 'delayed') delayedCount++;
+            else if (p.status === 'critical') criticalCount++;
+            else if (p.status === 'completed') completedCount++;
+        });
+
+        const statusLabels = [
+            lang === 'vi' ? 'Đúng tiến độ' : 'On Track',
+            lang === 'vi' ? 'Trễ tiến độ' : 'Delayed',
+            lang === 'vi' ? 'Nghiêm trọng' : 'Critical',
+            lang === 'vi' ? 'Đã hoàn thành' : 'Completed'
+        ];
+        const statusData = [onTrackCount, delayedCount, criticalCount, completedCount];
+
+        if (statusChartInstance) {
+            statusChartInstance.data.labels = statusLabels;
+            statusChartInstance.data.datasets[0].data = statusData;
+            statusChartInstance.update();
         } else {
-            budgetChartInstance = new Chart(budgetCtx, {
-                type: 'bar',
+            statusChartInstance = new Chart(statusCtx, {
+                type: 'doughnut',
                 data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: lang === 'vi' ? 'CAPEX Kế hoạch' : 'Planned CAPEX',
-                            data: plannedCapexData,
-                            backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
-                            borderColor: '#3b82f6',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        },
-                        {
-                            label: lang === 'vi' ? 'CAPEX Thực chi' : 'Actual CAPEX',
-                            data: actualCapexData,
-                            backgroundColor: 'rgba(0, 242, 254, 0.7)', // Teal
-                            borderColor: '#00f2fe',
-                            borderWidth: 1,
-                            borderRadius: 4
-                        }
-                    ]
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)', // Green (on_track)
+                            'rgba(245, 158, 11, 0.8)',  // Amber (delayed)
+                            'rgba(239, 68, 68, 0.8)',   // Red (critical)
+                            'rgba(59, 130, 246, 0.8)'   // Blue (completed)
+                        ],
+                        borderColor: '#121824',
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'top',
+                            position: 'right',
                             labels: {
                                 boxWidth: 12,
                                 padding: 15
@@ -88,21 +89,7 @@ export function updateCharts(projects, lang) {
                             borderWidth: 1
                         }
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: lang === 'vi' ? 'Triệu USD ($M)' : 'Million USD ($M)',
-                                color: '#94a3b8'
-                            }
-                        }
-                    }
+                    cutout: '65%'
                 }
             });
         }

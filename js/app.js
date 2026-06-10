@@ -138,20 +138,15 @@ function updateKPIs() {
 
     // Tiến độ trung bình
     let sumProgress = 0;
-    let totalPlannedCapex = 0;
-    let totalActualCapex = 0;
     let totalEquipmentCount = 0;
 
     allProjectsList.forEach(p => {
         sumProgress += calculateOverallProgress(p.tasks);
-        totalPlannedCapex += p.budget?.plannedCapex || 0;
-        totalActualCapex += p.budget?.actualCapex || 0;
         totalEquipmentCount += p.equipmentCount || 0;
     });
 
     const avgProgress = Math.round(sumProgress / total);
     document.getElementById('kpiAvgProgress').innerText = `${avgProgress}%`;
-    document.getElementById('kpiBudgetText').innerText = `${totalActualCapex.toFixed(1)} / ${totalPlannedCapex.toFixed(1)} M$`;
     document.getElementById('kpiSafeHoursVal').innerText = formatNumber(totalEquipmentCount);
 }
 
@@ -256,9 +251,6 @@ function updateProjectDetailUI() {
 
     // 3. Tab Risks
     renderRisksTab();
-
-    // 4. Tab Financials
-    renderFinancialsTab();
 
     // 5. Tab Logbook
     renderLogbookTab();
@@ -421,18 +413,7 @@ function renderRisksTab() {
     });
 }
 
-function renderFinancialsTab() {
-    document.getElementById('finPlannedCapexVal').innerText = `${currentProject.budget?.plannedCapex || 0} M$`;
-    document.getElementById('finActualCapexVal').innerText = `${currentProject.budget?.actualCapex || 0} M$`;
-    document.getElementById('finPlannedOpexVal').innerText = `${currentProject.budget?.plannedOpex || 0} M$`;
-    document.getElementById('finActualOpexVal').innerText = `${currentProject.budget?.actualOpex || 0} M$`;
 
-    // Điền giá trị vào form
-    document.getElementById('inputPlannedCapex').value = currentProject.budget?.plannedCapex || 0;
-    document.getElementById('inputActualCapex').value = currentProject.budget?.actualCapex || 0;
-    document.getElementById('inputPlannedOpex').value = currentProject.budget?.plannedOpex || 0;
-    document.getElementById('inputActualOpex').value = currentProject.budget?.actualOpex || 0;
-}
 
 function renderLogbookTab() {
     const container = document.getElementById('logTimelineContainer');
@@ -594,25 +575,7 @@ function initEventListeners() {
         refreshDashboard();
     });
 
-    // Tab Financials: Cập nhật tài chính
-    document.getElementById('btnSaveFinancials').addEventListener('click', async () => {
-        const plannedCapex = parseFloat(document.getElementById('inputPlannedCapex').value) || 0;
-        const actualCapex = parseFloat(document.getElementById('inputActualCapex').value) || 0;
-        const plannedOpex = parseFloat(document.getElementById('inputPlannedOpex').value) || 0;
-        const actualOpex = parseFloat(document.getElementById('inputActualOpex').value) || 0;
 
-        currentProject.budget = {
-            plannedCapex,
-            actualCapex,
-            plannedOpex,
-            actualOpex
-        };
-
-        await saveProject(currentProject);
-        renderFinancialsTab();
-        refreshDashboard();
-        alert(currentLanguage === 'vi' ? 'Cập nhật tài chính thành công!' : 'Financial details updated successfully!');
-    });
 
     // Tab Logbook: Thêm nhật ký
     document.getElementById('btnLogAdd').addEventListener('click', async () => {
@@ -772,12 +735,6 @@ async function handleProjectFormSubmit(e) {
             status: 'on_track', // mặc định khi tạo mới
             priority,
             equipmentCount: safeHours,
-            budget: {
-                plannedCapex: 100.0, // các thông số tài chính mặc định ban đầu
-                actualCapex: 0,
-                plannedOpex: 5.0,
-                actualOpex: 0
-            },
             tasks,
             risks: [],
             logbook: []
